@@ -1,0 +1,7 @@
+.addProductContainer{
+    margin:30px auto;
+    width: min(1000px , 95vw);
+    display: flex;
+    gap: 30px;
+    flex-direction: column;
+}

@@ -1,0 +1,118 @@
+.scanContainer {
+  margin: 30px auto;
+  width: min(1000px, 95vw);
+  display: flex;
+  gap: 30px;
+  flex-direction: column;
+  background-color: white;
+  padding: max(2vw, 10px);
+  box-sizing: border-box;
+}
+
+.detailsContainerLeft {
+  width: 50%;
+  text-align: center;
+
+}
+
+.detailsContainer {
+  display: flex;
+  flex-direction: row;
+}
+
+.detailsContainerRight {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+}
+
+.photo-list {
+  margin-top: 20px;
+}
+
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.photo-item {
+  margin: 5px;
+  cursor: pointer;
+}
+
+.photo-item img {
+  width: 100px;
+  height: 100px;
+  transition: filter 0.3s ease-in-out;
+  /* Adding transition for smooth effect */
+
+}
+
+.selectedPhoto {
+  width: 80%;
+  aspect-ratio: 10/9;
+  text-align: center;
+}
+
+.photo-item.blurred img {
+  filter: blur(3px);
+  /* Applying blur effect on selected photo */
+}
+
+
+.productDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px;
+  background-color: rgb(240, 239, 239);
+  padding: 10px;
+}
+
+/* Add these styles to your CSS file */
+.iconSpan {
+  position: relative;
+  margin-inline: 5px;
+  top: 3px;
+}
+
+.arrowSpan {
+  margin-left: 5px;
+  /* Adjust margin as needed */
+  margin-bottom: 5px;
+  /* Adjust margin as needed */
+}
+
+.commentInput {
+  width: 80%;
+}
+
+.commentButton {
+  background-color: var(--button-background);
+  height: 30px;
+}
+
+.indvReviews {
+  border-bottom: 1px solid var(--border-bottom);
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+@media only screen and (max-width: 600px) {
+  .detailsContainer {
+    flex-direction: column;
+  }
+
+  .detailsContainerLeft {
+    width: 100%;
+  }
+
+  .detailsContainerRight {
+    width: 100%;
+  }
+
+  .productDetails {
+    margin: 20px 10px;
+
+  }
+}

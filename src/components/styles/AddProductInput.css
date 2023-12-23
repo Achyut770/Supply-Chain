@@ -1,0 +1,61 @@
+.addInputContainer {
+    box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+    background-color: white;
+    padding: max(2vw, 20px);
+    text-align: center;
+    box-sizing: border-box;
+}
+
+input {
+    border: none;
+    margin: 10px 0;
+    border-bottom: 1px solid var(--border-bottom);
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+
+}
+
+.textInput {
+    width: 90%;
+}
+
+.inputIndv {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 95%;
+    margin: 0 auto;
+
+}
+
+.inputIndv b {
+    text-align: start;
+}
+
+.addLink {
+    background-color: var(--button-background);
+    height: 30px;
+    min-width: 80px;
+
+}
+
+.inputPhoto {
+    display: flex;
+    width: 100%;
+    align-items: baseline;
+}
+
+.productPhoto {
+    width: 150px;
+    aspect-ratio: 1;
+    margin: 5px;
+    box-sizing: border-box;
+}
+
+
+.submitProduct {
+    background-color: var(--button-background);
+    padding: 5px 20px;
+}

@@ -1,0 +1,55 @@
+.navContainer {
+    display: flex;
+    padding: max(1.5vw, 20px);
+    background-color: white;
+}
+
+.navLeft {
+    width: 30%;
+}
+
+.navRight {
+    width: 70%;
+    display: flex;
+    flex-direction: row;
+    gap: max(2vw, 10px);
+    justify-content: end;
+    align-items: center;
+}
+
+.walateAddressConnectWallet {
+    padding: 3px;
+    background-color: var(--button-background);
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+}
+
+.Nav {
+    cursor: pointer;
+}
+
+button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: white;
+}
+
+.big {
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--button-background);
+
+}
+
+@media only screen and (max-width: 600px) {
+    .navRight {
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    .navLeft {
+        display: none;
+    }
+}
