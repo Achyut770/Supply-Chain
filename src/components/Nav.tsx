@@ -1,6 +1,7 @@
-import React from 'react'
-import "./styles/Nav.css"
+import React from 'react';
+import { toast } from 'react-toastify';
 import { AppState } from '../App';
+import "./styles/Nav.css";
 
 interface NavProps {
   navIndex: number;
@@ -12,7 +13,7 @@ interface NavProps {
 export const handleCopy = async (data: string | undefined) => {
   try {
     data && await navigator.clipboard.writeText(data);
-    alert("Copid to clipboard")
+    toast.success("Copied to clipboard")
   } catch (error) {
     console.error('Failed to copy:', error);
   }
@@ -29,7 +30,7 @@ const Nav = ({ navIndex, SetNavIndex, appState, connectLucidAndNami }: NavProps)
         <div className='walateAddressConnectWallet'>
           {!appState?.wAddr ?
             <button onClick={connectLucidAndNami}>Connect Wallet</button>
-            : <div onClick={() => handleCopy(appState?.wAddr)}>{appState?.wAddr.slice(0, 5)}...{appState?.wAddr.slice(35, 40)}</div>}
+            : <div onClick={() => handleCopy(appState?.wAddr,)}>{appState?.wAddr.slice(0, 5)}...{appState?.wAddr.slice(103, 108)}</div>}
         </div></div>
     </nav>
   )

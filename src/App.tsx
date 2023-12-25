@@ -1,25 +1,18 @@
-import React, { useState } from 'react';
-import logo from './logo.svg';
-import './App.css';
 import {
   Address,
-  AddressDetails,
   Blockfrost,
   Lucid,
-  MintingPolicy,
   PolicyId,
-  ScriptHash,
-  SpendingValidator,
-  TxHash,
-  UTxO,
-  Unit,
-  getAddressDetails,
+  Unit
 } from "lucid-cardano";
-import Nav from './components/Nav';
-import AddProduct from './components/AddProduct/AddProduct';
-import Scan from './components/Scan/Scan';
+import { useState } from 'react';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import './App.css';
+import AddProduct from './components/AddProduct/AddProduct';
+import Nav from './components/Nav';
+import Scan from './components/Scan/Scan';
+import ConnectWallet from "./components/ConnectWallet";
 
 export interface AppState {
   lucid?: Lucid;
@@ -32,10 +25,7 @@ export interface AppState {
 function App() {
   const [navIndex, SetNavIndex] = useState<number>(0)
   const [appState, setAppState] = useState<AppState>({});
-
-
-
-
+  const [walletConnected, setWalletConnected] = useState(false)
   const connectLucidAndNami = async () => {
     const lucid = await Lucid.new(
       new Blockfrost(
@@ -50,20 +40,18 @@ function App() {
     }
     const nami = await window.cardano.nami.enable();
     lucid.selectWallet(nami);
-    const address: Address = await lucid.wallet.address();
-    const details: AddressDetails = getAddressDetails(address);
     setAppState({
       ...appState,
       lucid: lucid,
       wAddr: await lucid.wallet.address(),
     });
-
+    setWalletConnected(() => true)
   };
   return (
     <div className="App">
       <Nav navIndex={navIndex} SetNavIndex={SetNavIndex} appState={appState} connectLucidAndNami={connectLucidAndNami} />
-      {!navIndex ? <Scan /> : <AddProduct setAppState={setAppState} appState={appState} />}
-
+      {!walletConnected ? <ConnectWallet /> : null}
+      {walletConnected ? !navIndex ? <Scan appState={appState} /> : <AddProduct setAppState={setAppState} appState={appState} /> : null}
       <ToastContainer
         z-index={4567}
         position="top-center"

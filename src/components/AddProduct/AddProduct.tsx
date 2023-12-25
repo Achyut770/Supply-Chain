@@ -4,7 +4,8 @@ import AddProductInput from './AddProductInput';
 import Nft from './Nft';
 
 export interface AddProduct {
-  appState: AppState, setAppState: React.Dispatch<React.SetStateAction<AppState>>
+  appState: AppState,
+  setAppState: React.Dispatch<React.SetStateAction<AppState>>
 }
 
 const AddProduct = ({ appState, setAppState }: AddProduct) => {

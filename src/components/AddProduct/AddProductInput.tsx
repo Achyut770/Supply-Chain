@@ -1,11 +1,10 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
-import "../styles/AddProductInput.css";
-import QrCode from './QrCode';
-import { Address, AddressDetails, Data, Datum, Lucid, PolicyId, SpendingValidator, Unit, applyParamsToScript, getAddressDetails } from 'lucid-cardano';
-import { AppState } from '../../App';
+import { Address, AddressDetails, Data, Datum, Lucid, PolicyId, SpendingValidator, Unit, applyParamsToScript, fromText, getAddressDetails } from 'lucid-cardano';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { toast } from 'react-toastify';
+import { AppState } from '../../App';
+import "../styles/AddProductInput.css";
 import { signAndSubmitTx } from '../utils';
-
+import QrCode from './QrCode';
 
 export interface SupplyChainDatum {
     manufacturer?: string;
@@ -24,7 +23,7 @@ export const initialSupplyChainDatum: SupplyChainDatum = {
 
 };
 
-export const getSupplyChainScript = (CurrencySymbol: PolicyId, tokenName: string, lucid: Lucid | undefined) => {
+export const getValidator = (CurrencySymbol: PolicyId, tokenName: string,) => {
     const Params = Data.Tuple([Data.Bytes(), Data.Bytes()]);
     type Params = Data.Static<typeof Params>;
     const SupplyChainScript: SpendingValidator = {
@@ -35,6 +34,12 @@ export const getSupplyChainScript = (CurrencySymbol: PolicyId, tokenName: string
             Params
         ),
     };
+    return SupplyChainScript
+}
+
+export const getSupplyChainScript = (CurrencySymbol: PolicyId, tokenName: string, lucid: Lucid | undefined) => {
+
+    const SupplyChainScript = getValidator(CurrencySymbol, tokenName)
     const supplyChainAddress: Address | undefined = lucid?.utils.validatorToAddress(SupplyChainScript);
     if (supplyChainAddress)
         return supplyChainAddress
@@ -65,7 +70,6 @@ export const SupplyChainDatums = Data.Object({
     comments: Data.Array(Data.Bytes())
 });
 
-console.log("SupplyChainDatums", SupplyChainDatums)
 
 const AddProductInput = ({ appState }: { appState: AppState }) => {
 
@@ -80,7 +84,7 @@ const AddProductInput = ({ appState }: { appState: AppState }) => {
         if (inputValue.trim() !== '') {
             setSupplyChainDatum(prevState => ({
                 ...prevState,
-                photos: [...prevState.photos, inputValue.trim()]
+                photos: [...prevState.photos, fromText(inputValue.trim())]
             }));
             setInputValue('');
         }
@@ -97,59 +101,53 @@ const AddProductInput = ({ appState }: { appState: AppState }) => {
 
     const handleDateChange = (date: string) => {
         const newDate = new Date(date);
-        // Get the timestamp (POSIX time) from the selected date
         const posixTimestamp = newDate.getTime();
         return posixTimestamp
     };
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!lucid) {
-            // if (!lucid || !nftPolicyIdHex || !nftTokenhex || !nftAssetClassHex) {
-            return toast.error("Something Missing")
+        // if (!lucid) {
+        if (!nftPolicyIdHex || !nftTokenhex || !nftAssetClassHex) {
+            return toast.error("Plz Mint Nft  first")
         }
-        if (!wAddr) {
+
+        if (!lucid || !wAddr) {
             return toast.error("Plz Connect Wallet")
         }
         if (supplyChainDatum.manufactureDate.trim() === '' || supplyChainDatum.expiryDate.trim() === '') {
             toast.error('Manufacture Date and Expiry Date are required fields.');
             return;
         }
+        if (supplyChainDatum.manufactureDate.trim() > supplyChainDatum.expiryDate.trim()) {
+            toast.error('Manufacture Date should be less than expiry date');
+            return;
+        }
+
         if (supplyChainDatum.photos.length === 0) {
             toast.error('Please add at least one photo.');
             return;
         }
-        // const supplyChainAddress: Address | undefined = getSupplyChainScript(nftPolicyIdHex, nftTokenhex, lucid);
-        // console.log("SupplyChainAddress", supplyChainAddress)
+        const supplyChainAddress: Address | undefined = getSupplyChainScript(nftPolicyIdHex, nftTokenhex, lucid);
         const manufactureDate = handleDateChange(supplyChainDatum.manufactureDate)
         const expiryDate = handleDateChange(supplyChainDatum.expiryDate)
         const details: AddressDetails = getAddressDetails(wAddr);
         const pkh = details.paymentCredential?.hash
-        console.log("Datumss", supplyChainDatum)
         if (!pkh) return
-        // export const SupplyChainDatums = Data.Object({
-        //     manufacturer: Data.Bytes(),
-        //     manufactureDate: Data.Integer(),
-        //     expiryDate: Data.Integer(),
-        //     photos: Data.Array(Data.Bytes()),
-        //     currentOwner: Data.Bytes(),
-        //     owners: Data.Array(Data.Bytes()),
-        //     comments: Data.Array(Data.Bytes())
-        // });
-        const datum: SupplyChainDatums = { manufacturer: pkh, manufactureDate: BigInt(manufactureDate), expiryDate: BigInt(expiryDate), currentOwner: pkh, owners: [pkh], photos: supplyChainDatum.photos, comments: [""] }
-        // const datum: SupplyChainDatums = { manufacturer: pkh, manufactureDate: BigInt(manufactureDate), expiryDate: BigInt(expiryDate), currentOwner: pkh, comments: [""], owners: [pkh], }
-        console.log("DatumsData", datum)
+        const datum: SupplyChainDatums = { manufacturer: pkh, manufactureDate: BigInt(manufactureDate), expiryDate: BigInt(expiryDate), currentOwner: pkh, owners: [pkh], photos: supplyChainDatum.photos, comments: [] }
         const dtm: Datum = Data.to(datum, SupplyChainDatums);
-        console.log("DatumSerialized", dtm)
-        // if (!supplyChainAddress) return
-        // setLoading(() => true)
-        // await createSupplyChaintxn(lucid, supplyChainAddress, dtm, nftAssetClassHex)
-        // setLoading(() => false)
-        // setInputValue('');
-        // setShowQrCode(() => true)
+        if (!supplyChainAddress) return
+        setLoading(() => true)
+        try {
+            await createSupplyChaintxn(lucid, supplyChainAddress, dtm, nftAssetClassHex)
+            setLoading(() => false)
+            setInputValue('');
+            setShowQrCode(() => true)
+        } catch (error) { }
+
     };
 
-    const qrData = { nftPolicyIdHex: nftPolicyIdHex as string, nftTokenhex: nftTokenhex as string };
+    const qrData = { nftPolicyIdHex: nftPolicyIdHex as string, nftTokenhex: nftTokenhex as string, nftAssetClassHex };
     const qrDataJSON = JSON.stringify(qrData);
 
     return (
@@ -206,3 +204,7 @@ const AddProductInput = ({ appState }: { appState: AppState }) => {
 };
 
 export default AddProductInput;
+
+
+// c8f54ee3507aff0e13efbff50d6bea4b0a4008c2f2910fc5ac969aa1 537570706c79436861696e204e4654 c8f54ee3507aff0e13efbff50d6bea4b0a4008c2f2910fc5ac969aa1537570706c79436861696e204e4654
+//c8f54ee3507aff0e13efbff50d6bea4b0a4008c2f2910fc5ac969aa1537570706c79436861696e204e4654

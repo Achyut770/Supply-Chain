@@ -1,5 +1,6 @@
-import { Lucid, TxComplete, TxHash } from "lucid-cardano";
+import { Address, Data, Lucid, TxComplete, TxHash, UTxO, Unit } from "lucid-cardano";
 import { toast } from "react-toastify";
+import { SupplyChainDatum, SupplyChainDatums } from "./AddProduct/AddProductInput";
 
 export const signAndSubmitTx = async (tx: TxComplete): Promise<TxHash> => {
     const signedTx = await tx.sign().complete();
@@ -9,19 +10,14 @@ export const signAndSubmitTx = async (tx: TxComplete): Promise<TxHash> => {
     return txHash;
 };
 
-export const safeStringToBigInt = (r: string): bigint | undefined => {
-    const parsed = BigInt(Number(r));
-    if (Number.isNaN(parsed)) return;
-    return parsed;
-};
 
-export const findUTxO = async (lucid: Lucid, ref: string) => {
-    const [txH, ix] = ref.split("#");
-    const utxos = await lucid.utxosByOutRef([
-        {
-            txHash: txH,
-            outputIndex: Number(ix),
-        },
-    ]);
-    return utxos[0];
-};
+type SupplyChainDatumUtxoPair = [SupplyChainDatum, UTxO];
+
+export const getScannedDatumUtxo = async (lucid: Lucid, address: Address, nftAssetClass: Unit): Promise<SupplyChainDatumUtxoPair | undefined> => {
+    const utxos: UTxO[] = await lucid.utxosAt(address);
+    if (!utxos || utxos.length === 0) return;
+    const [data] = utxos.filter((items, index) => items.assets[nftAssetClass] === BigInt(1))
+    if (!data || !data?.datum) return;
+    const datum: SupplyChainDatums = Data.from(data.datum, SupplyChainDatums);
+    return [{ ...datum, expiryDate: datum.expiryDate.toString(), manufactureDate: datum.manufactureDate.toString() }, data]
+}

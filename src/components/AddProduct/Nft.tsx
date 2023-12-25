@@ -45,6 +45,7 @@ const Nft = ({ appState, setAppState }: AddProduct) => {
       nftTokenhex: tn,
       nftAssetClassHex: unit,
     });
+    console.log("Policy Id , TokenHex , AssetClass", policyId, tn, unit)
     return { nftPolicy, unit };
   };
 
