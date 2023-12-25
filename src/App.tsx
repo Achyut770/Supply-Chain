@@ -6,7 +6,7 @@ import {
   Unit
 } from "lucid-cardano";
 import { useState } from 'react';
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import './App.css';
 import AddProduct from './components/AddProduct/AddProduct';
@@ -30,12 +30,12 @@ function App() {
     const lucid = await Lucid.new(
       new Blockfrost(
         "https://cardano-preview.blockfrost.io/api/v0",
-        "previewBaRUkCnKdVbSRggHyz5kGJrhK2nq2mvb"
+        process.env.REACT_APP_BLOCKFORST_KEY
       ),
       "Preview"
     );
     if (!window?.cardano?.nami) {
-      window.alert("Please install Nami Wallet");
+      toast.error("Please install Nami Wallet");
       return;
     }
     const nami = await window.cardano.nami.enable();

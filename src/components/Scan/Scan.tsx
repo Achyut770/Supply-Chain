@@ -169,7 +169,6 @@ const Scan = ({ appState }: { appState: AppState }) => {
   return (
     <>
       {isLoading ? <div className='plzConnectWallet'>...Fetching Data....</div > :
-
         <div className='scanContainer'>
           {showDetails && <div className='detailsContainer'>
             <div className='detailsContainerLeft'>
