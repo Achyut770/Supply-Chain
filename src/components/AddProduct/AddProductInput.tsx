@@ -132,6 +132,7 @@ const AddProductInput = ({ appState }: { appState: AppState }) => {
         const dtm: Datum = Data.to(datum, SupplyChainDatums);
         if (!supplyChainAddress) return
         try {
+            setLoading(() => true)
             const res = await createSupplyChaintxn(lucid, supplyChainAddress, dtm, nftAssetClassHex)
             setLoading(() => false)
             setInputValue('');

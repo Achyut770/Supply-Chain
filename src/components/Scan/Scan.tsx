@@ -42,13 +42,15 @@ const Scan = ({ appState }: { appState: AppState }) => {
   const [transferLoading, setTransferLoading] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [nftClassHex, setNftClassHex] = useState("")
+  const [policyId, setPolicyId] = useState("")
+  const [nftTokenHex, setNftTokenHex] = useState("")
   const [selectedPhoto, setSelectedPhoto] = useState<string>("");
   const [utxo, setUtxo] = useState<UTxO>()
   const [validater, setValidater] = useState<SpendingValidator | undefined>()
   const { lucid, wAddr } = appState
 
 
-  const createSupplyChaintxnForTransferAndComment = async (lucid: Lucid, dtm: Datum, utxo: UTxO, red: SupplyChainRedemer, pkh: string, validator: SpendingValidator, beneficiaryPKH: string, setLoading: React.Dispatch<React.SetStateAction<boolean>>, setValue: React.Dispatch<React.SetStateAction<string>>, datums: SupplyChainDatum) => {
+  const createSupplyChaintxnForTransferAndComment = async (lucid: Lucid, dtm: Datum, utxo: UTxO, red: SupplyChainRedemer, pkh: string, validator: SpendingValidator, beneficiaryPKH: string, setLoading: React.Dispatch<React.SetStateAction<boolean>>, setValue: React.Dispatch<React.SetStateAction<string>>, datums: SupplyChainDatum, fetchData: () => Promise<any>) => {
     const redemer = Data.to<SupplyChainRedemer>(red, SupplyChainRedemer)
     try {
       const tx = await lucid
@@ -66,6 +68,7 @@ const Scan = ({ appState }: { appState: AppState }) => {
     } catch (error) {
       toast.error("Something Went Wrong")
       setLoading(() => false)
+      fetchData()
       console.error("Error", error)
     }
   }
@@ -76,23 +79,29 @@ const Scan = ({ appState }: { appState: AppState }) => {
       return
     }
     const data = jsonParse(result)
-    const address: Address | undefined = getSupplyChainScript(data.nftPolicyIdHex as PolicyId, data.nftTokenhex as string, lucid)
-    setNftClassHex(() => data.nftAssetClassHex)
+    setIsLoading(() => true)
+    await fetchUtxo(data.nftPolicyIdHex as PolicyId, data.nftTokenhex as string, lucid, data.nftAssetClassHex as string)
+    setIsLoading(() => false)
+  };
+
+  const fetchUtxo = async (nftPolicyIdHex: PolicyId, nftTokenhex: string, lucid: Lucid, nftAssetClassHex: string) => {
+    const address: Address | undefined = getSupplyChainScript(nftPolicyIdHex as PolicyId, nftTokenhex as string, lucid)
+    setNftClassHex(() => nftAssetClassHex)
+    setNftTokenHex(() => nftTokenhex)
+    setPolicyId(() => nftPolicyIdHex)
     if (!address) return
     setSupplyChainAddress(() => address)
     if (!address) return
-    setIsLoading(() => true)
-    const utxoAndDatum = await getScannedDatumUtxo(lucid, address, data.nftAssetClassHex)
+    const utxoAndDatum = await getScannedDatumUtxo(lucid, address, nftAssetClassHex)
     if (!utxoAndDatum || !utxoAndDatum[0]) return
     const datumDetail: SupplyChainDatum = utxoAndDatum[0]
-    const valid = getValidator(data.nftPolicyIdHex, data.nftTokenhex)
-    setIsLoading(() => false)
+    const valid = getValidator(nftPolicyIdHex, nftTokenhex)
     setValidater(() => valid)
     setdatumDetails(() => datumDetail)
     setSelectedPhoto(() => datumDetail.photos[0])
     setUtxo(() => utxoAndDatum[1])
     setShowDetails(() => true)
-  };
+  }
 
   const convertTimeStampToDate = (data: string) => {
     const date = new Date(Number(data));
@@ -126,7 +135,9 @@ const Scan = ({ appState }: { appState: AppState }) => {
       setAddreviewLoading(() => true)
 
       const datums = { ...datumDetail, manufactureDate: datumDetail.manufactureDate.toString(), expiryDate: datumDetail.expiryDate.toString() }
-      await createSupplyChaintxnForTransferAndComment(lucid, dtm, utxo, "Comment", beneficiaryPKH, validater, beneficiaryPKH, setAddreviewLoading, setCommentValue, datums)
+      const fetchData = async () => { await fetchUtxo(policyId, nftTokenHex, lucid, nftClassHex) }
+
+      await createSupplyChaintxnForTransferAndComment(lucid, dtm, utxo, "Comment", beneficiaryPKH, validater, beneficiaryPKH, setAddreviewLoading, setCommentValue, datums, fetchData)
     }
   };
 
@@ -150,7 +161,8 @@ const Scan = ({ appState }: { appState: AppState }) => {
 
       const datums = { ...datumDetail, manufactureDate: datumDetail.manufactureDate.toString(), expiryDate: datumDetail.expiryDate.toString() }
       console.log("Datums", datums)
-      await createSupplyChaintxnForTransferAndComment(lucid, dtm, utxo, "Transfer", beneficiaryPKH, validater, beneficiaryPKH, setTransferLoading, setTransferValue, datums)
+      const fetchData = async () => { await fetchUtxo(policyId, nftTokenHex, lucid, nftClassHex) }
+      await createSupplyChaintxnForTransferAndComment(lucid, dtm, utxo, "Transfer", beneficiaryPKH, validater, beneficiaryPKH, setTransferLoading, setTransferValue, datums, fetchData)
     }
   };
 
@@ -287,7 +299,7 @@ const Scan = ({ appState }: { appState: AppState }) => {
                     placeholder='Write  a PubKeyHash of receiver'
                   />
                   <button disabled={transferLoading} className='commentButton' onClick={handleTransfer}>
-                    {transferLoading ? "Transfering" : "Transfers"}
+                    {transferLoading ? "Transfering" : "Transfer"}
                   </button>
                 </form>
 
