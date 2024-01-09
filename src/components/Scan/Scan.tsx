@@ -20,8 +20,13 @@ const jsonParse = (data: string) => {
   }
 }
 
+export const changeHexTotext = (data: string) => {
+  return toText(data)
+}
+
+
 const SupplyChainRedemer = Data.Enum([
-  Data.Literal("Comments"),
+  Data.Literal("Comment"),
   Data.Literal("Transfer"),
 ]);
 
@@ -114,13 +119,14 @@ const Scan = ({ appState }: { appState: AppState }) => {
         manufactureDate: BigInt(datumDetails.manufactureDate)
       }
       const dtm: Datum = Data.to(datumDetail, SupplyChainDatums);
-      setAddreviewLoading(() => true)
       const details: AddressDetails = getAddressDetails(wAddr);
       const beneficiaryPKH: string | undefined = details?.paymentCredential?.hash
       if (!beneficiaryPKH) return
       if (beneficiaryPKH !== datumDetail.currentOwner) return toast.error("You Are not the owner")
+      setAddreviewLoading(() => true)
+
       const datums = { ...datumDetail, manufactureDate: datumDetail.manufactureDate.toString(), expiryDate: datumDetail.expiryDate.toString() }
-      await createSupplyChaintxnForTransferAndComment(lucid, dtm, utxo, "Comments", beneficiaryPKH, validater, beneficiaryPKH, setAddreviewLoading, setCommentValue, datums)
+      await createSupplyChaintxnForTransferAndComment(lucid, dtm, utxo, "Comment", beneficiaryPKH, validater, beneficiaryPKH, setAddreviewLoading, setCommentValue, datums)
     }
   };
 
@@ -136,19 +142,18 @@ const Scan = ({ appState }: { appState: AppState }) => {
         manufactureDate: BigInt(datumDetails.manufactureDate)
       }
       const dtm: Datum = Data.to(datumDetail, SupplyChainDatums);
-      setTransferLoading(() => true)
       const details: AddressDetails = getAddressDetails(wAddr);
       const beneficiaryPKH: string | undefined = details?.paymentCredential?.hash
       if (!beneficiaryPKH) return
       if (beneficiaryPKH != datumDetails.currentOwner) return toast.error("You Are not the owner")
+      setTransferLoading(() => true)
+
       const datums = { ...datumDetail, manufactureDate: datumDetail.manufactureDate.toString(), expiryDate: datumDetail.expiryDate.toString() }
+      console.log("Datums", datums)
       await createSupplyChaintxnForTransferAndComment(lucid, dtm, utxo, "Transfer", beneficiaryPKH, validater, beneficiaryPKH, setTransferLoading, setTransferValue, datums)
     }
   };
 
-  const changeHexTotext = (data: string) => {
-    return toText(data)
-  }
 
   useEffect(() => {
     const scanner = new Html5QrcodeScanner('reader', { fps: 5 }, false);
@@ -282,7 +287,7 @@ const Scan = ({ appState }: { appState: AppState }) => {
                     placeholder='Write  a PubKeyHash of receiver'
                   />
                   <button disabled={transferLoading} className='commentButton' onClick={handleTransfer}>
-                    {transferLoading ? "Transfering" : "Transfer"}
+                    {transferLoading ? "Transfering" : "Transfers"}
                   </button>
                 </form>
 
