@@ -141,10 +141,8 @@ const AddProductInput = ({ appState }: { appState: AppState }) => {
         } catch (error) {
             toast.error("Something Went Wrong")
             console.log("error", error)
+            setLoading(() => false)
         }
-
-
-
     };
 
     const qrData = { nftPolicyIdHex: nftPolicyIdHex as string, nftTokenhex: nftTokenhex as string, nftAssetClassHex };

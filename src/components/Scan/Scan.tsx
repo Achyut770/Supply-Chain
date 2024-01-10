@@ -50,7 +50,7 @@ const Scan = ({ appState }: { appState: AppState }) => {
   const { lucid, wAddr } = appState
 
 
-  const createSupplyChaintxnForTransferAndComment = async (lucid: Lucid, dtm: Datum, utxo: UTxO, red: SupplyChainRedemer, pkh: string, validator: SpendingValidator, beneficiaryPKH: string, setLoading: React.Dispatch<React.SetStateAction<boolean>>, setValue: React.Dispatch<React.SetStateAction<string>>, datums: SupplyChainDatum, fetchData: () => any) => {
+  const createSupplyChaintxnForTransferAndComment = async (lucid: Lucid, dtm: Datum, utxo: UTxO, red: SupplyChainRedemer, pkh: string, validator: SpendingValidator, beneficiaryPKH: string, setLoading: React.Dispatch<React.SetStateAction<boolean>>, setValue: React.Dispatch<React.SetStateAction<string>>, datums: SupplyChainDatum, fetchUtxo: () => any) => {
     const redemer = Data.to<SupplyChainRedemer>(red, SupplyChainRedemer)
     try {
       const tx = await lucid
@@ -64,11 +64,12 @@ const Scan = ({ appState }: { appState: AppState }) => {
       setLoading(() => false)
       setValue(() => "")
       setdatumDetails(() => datums)
+      fetchUtxo()
       toast.success("Succesfull")
     } catch (error) {
+      fetchUtxo()
       toast.error("Something Went Wrong")
       setLoading(() => false)
-      fetchData()
       console.error("Error", error)
     }
   }
@@ -80,11 +81,23 @@ const Scan = ({ appState }: { appState: AppState }) => {
     }
     const data = jsonParse(result)
     setIsLoading(() => true)
-    await fetchUtxo(data.nftPolicyIdHex as PolicyId, data.nftTokenhex as string, lucid, data.nftAssetClassHex as string)
+    await setData(data.nftPolicyIdHex as PolicyId, data.nftTokenhex as string, lucid, data.nftAssetClassHex as string)
     setIsLoading(() => false)
     setShowDetails(() => true)
 
   };
+
+  const setData = async (nftPolicyIdHex: PolicyId, nftTokenhex: string, lucid: Lucid, nftAssetClassHex: string) => {
+    const utxoDatum = await fetchUtxo(nftPolicyIdHex, nftTokenhex, lucid, nftAssetClassHex)
+    console.log("UtxoDatum", utxoDatum)
+    if (!utxoDatum) return
+    console.log("UtxoDatum", utxoDatum)
+    const datumDetail: SupplyChainDatum = utxoDatum
+    const valid = getValidator(nftPolicyIdHex, nftTokenhex)
+    setValidater(() => valid)
+    setdatumDetails(() => datumDetail)
+    setSelectedPhoto(() => datumDetail.photos[0])
+  }
 
   const fetchUtxo = async (nftPolicyIdHex: PolicyId, nftTokenhex: string, lucid: Lucid, nftAssetClassHex: string) => {
     const address: Address | undefined = getSupplyChainScript(nftPolicyIdHex as PolicyId, nftTokenhex as string, lucid)
@@ -93,15 +106,11 @@ const Scan = ({ appState }: { appState: AppState }) => {
     setPolicyId(() => nftPolicyIdHex)
     if (!address) return
     setSupplyChainAddress(() => address)
-    if (!address) return
     const utxoAndDatum = await getScannedDatumUtxo(lucid, address, nftAssetClassHex)
-    if (!utxoAndDatum || !utxoAndDatum[0]) return
-    const datumDetail: SupplyChainDatum = utxoAndDatum[0]
-    const valid = getValidator(nftPolicyIdHex, nftTokenhex)
-    setValidater(() => valid)
-    setdatumDetails(() => datumDetail)
-    setSelectedPhoto(() => datumDetail.photos[0])
+    console.log("FetchUtxo", utxoAndDatum)
+    if (!utxoAndDatum) return
     setUtxo(() => utxoAndDatum[1])
+    return utxoAndDatum[0]
   }
 
   const convertTimeStampToDate = (data: string) => {
